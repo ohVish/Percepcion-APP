@@ -1,0 +1,152 @@
+#:kivy 1.9.0
+<Logo@Image>:
+    source:'./resources/icons/solicon.png'
+    size: (100,100)
+    pos_hint: {'center_x':0.5,'center_y':0.5}
+
+<Title@Label>:
+    pos_hint: {'center_x':0.5,'center_y':0.5}
+    markup: True
+    text: "[b]ScoreApp[/b]"
+    font_size: '50sp'
+    size_hint: 0.5,0.5
+    canvas:
+        Color:
+            rgba: 1,1,1,0.25
+        BorderImage:
+            source: './resources/red.png'
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0,0,0,1
+        Line:
+            width: 2
+            rectangle: self.x,self.y,self.width,self.height
+<MediumLabel@Label>:
+    markup: True
+    font_size:'18sp'
+
+<MyScreenManager>:
+    SoundScreen:
+    FileScreen:
+    RecordScreen:
+
+<MainScreen>:
+    tab_pos: 'top_left'
+    do_default_tab: False
+    tab_width: self.width/3
+    tab_height: 100
+    TabbedPanelItem:
+        text: 'Principal'
+        BoxLayout:
+            orientation: 'vertical'
+            Title:
+            Logo:
+            MediumLabel:
+                text: 'Aplicación de prueba para la [b]digitalización de partituras[/b].\nPermite leer la imagen de una partitura y digitalizarla,\no escuchar una melodía y crear la partitura.'
+            MediumLabel:
+                size_hint: 0.25,0.25
+                pos_hint: {'center_x':0.5,'center_y':0.5}
+                text: 'Realizada por José Miguel,Javier y Jesús.'
+                canvas:
+                    Line:
+                        width: 2
+                        rectangle: self.x-250,self.y,self.width+500,self.height
+    TabbedPanelItem:
+        text: 'Escuchar\n melodía.' 
+        MyScreenManager:
+            id: screenManager
+    TabbedPanelItem:
+        text: 'Leer\n partitura'
+
+<SoundScreen>:
+    id: soundScreen
+    name: 'soundS'
+    BoxLayout:
+        orientation:'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Seleccione si desea:\n1. [b]Grabar[/b] el audio.\n2. [b]Utilizar[/b] un fichero WAV.'
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Grabar'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'recordS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Fichero'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'fileS'
+<FileScreen>:
+    name: 'fileS'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Introduce el [b]nombre[/b] del fichero.\nEste debe encontrarse en el directorio [i][b]"./resources/sounds/[/b][/i]".'
+        TextInput:
+            id: filename_input
+            multiline: False
+            text: 'ejemplo.wav'
+            size_hint: 0.5,0.25
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.3
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press: 
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'soundS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Confirmar'
+                on_press: 
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'fileS'
+            
+
+<RecordScreen>:
+    name: 'recordS'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Introduce la duración en [b]segundos[/b] que deseas \nque tenga la melodía:'
+        TextInput:
+            id: duration_input
+            multiline: False
+            text: '1'
+            size_hint: 0.5,0.25
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.3
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press: 
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'soundS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Confirmar'
+                on_press: 
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'recordS'
