@@ -30,6 +30,7 @@
     SoundScreen:
     FileScreen:
     RecordScreen:
+    LoadingScreen:
 
 <MainScreen>:
     tab_pos: 'top_left'
@@ -52,6 +53,8 @@
                     Line:
                         width: 2
                         rectangle: self.x-250,self.y,self.width+500,self.height
+            Label:
+                size_hint: 1,0.1
     TabbedPanelItem:
         text: 'Escuchar\n melodía.' 
         MyScreenManager:
@@ -85,7 +88,9 @@
                     root.manager.transition.direction = 'left'
                     root.manager.current = 'fileS'
 <FileScreen>:
+    txt_input: filename_input
     name: 'fileS'
+    id: file_screen
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -114,12 +119,18 @@
                 id: btn_file
                 text: 'Confirmar'
                 on_press: 
+                    file_screen.fileOpen()
                     root.manager.transition.direction = 'left'
                     root.manager.current = 'fileS'
             
 
 <RecordScreen>:
     name: 'recordS'
+    id: record_screen
+    duration: duration_input
+    freq: fs_input
+    filename: filename_input
+    sm: root.manager
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -132,6 +143,28 @@
             text: '1'
             size_hint: 0.5,0.25
             pos_hint: {'center_x':0.5,'center_y':0.5}
+        GridLayout:
+            cols: 2
+            BoxLayout:
+                orientation:'vertical'
+                MediumLabel:
+                    text: '[b]Nombre[/b] del fichero:'
+                TextInput:
+                    id: filename_input
+                    multiline: False
+                    text: 'output.wav'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
+            BoxLayout:
+                orientation:'vertical'
+                MediumLabel:
+                    text: '[b]Frecuencia[/b] de muestreo:'
+                TextInput:
+                    id: fs_input
+                    multiline: False
+                    text: '8000'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
             size_hint: 0.1,0.5
         GridLayout:
@@ -149,4 +182,16 @@
                 text: 'Confirmar'
                 on_press: 
                     root.manager.transition.direction = 'left'
-                    root.manager.current = 'recordS'
+                    root.manager.current = 'loadS'
+                    record_screen.recordFile()
+
+
+<LoadingScreen>:
+    name: 'loadS'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            font_size: '20sp'
+            text: 'Grabando...'
