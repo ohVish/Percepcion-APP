@@ -58,6 +58,7 @@ class FileScreen(Screen):
     
 
 class RecordScreen(Screen,EventDispatcher):
+    
     duration = ObjectProperty(None)
     filename = ObjectProperty(None)
     freq = ObjectProperty(None)
@@ -74,8 +75,10 @@ class RecordScreen(Screen,EventDispatcher):
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
         else:
+            self.sm.current='loadS'
             t = threading.Thread(target=self.worker,args=(seconds,fs,self.filename.text))
             t.start()
+
     def worker(self,seconds,fs,filename):
         myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=1)
         sd.wait()
@@ -86,7 +89,7 @@ class RecordScreen(Screen,EventDispatcher):
 def loadStatus(instance,value):
         if value == True:
             instance.sm.current='soundS'
-            value = False
+            instance.end = False
             emerging = Popup(title='Correcto',content=Label(text='Audio grabado con éxito.'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
