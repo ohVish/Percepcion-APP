@@ -38,6 +38,7 @@
     CaptureScreen:
     ImageConfirmScreen:
     ImageReadScreen:
+
 <MainScreen>:
     tab_pos: 'top_left'
     do_default_tab: False
@@ -227,6 +228,7 @@
     name: 'IFileS'
     txt_input: filename_input
     id: imfile_screen
+    sm: root.manager
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -263,6 +265,7 @@
     name: 'captureS'
     id: capture_screen
     filename: filename_input
+    sm: root.manager
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -292,12 +295,14 @@
                 text: 'Capturar'
                 on_press:
                     capture_screen.capturing()
-                    root.manager.transition.direction = 'right'
+                    root.manager.transition.direction = 'left'
                     root.manager.current = 'IConfirmS'
 
 <ImageConfirmScreen>:
     name: 'IConfirmS'
     id: confirm_screen
+    image: im_confirm
+    filename: './resources/images/'
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -305,7 +310,8 @@
         MediumLabel:
             text: '¿Es correcta esta imagen?'
         Image:
-            source:'./resources/images/'+root.manager.get_screen('captureS').filename.text
+            id: im_confirm
+            source: confirm_screen.filename
             size: (100,100)
             pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
@@ -330,14 +336,17 @@
 <ImageReadScreen>:
     name: 'IReadS'
     id: confirm_screen
+    image: im
     BoxLayout:
+        id: boxlayout
         orientation: 'vertical'
         Title:
         Logo:
         MediumLabel:
             text: '¿Es correcta esta imagen?'
         Image:
-            source:'./resources/images/'+root.manager.get_screen('IFileS').txt_input.text
+            id: im
+            source:'./resources/images/'
             size: (100,100)
             pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:

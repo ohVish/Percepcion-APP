@@ -12,9 +12,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
 from kivy.properties import BooleanProperty
+from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 from kivy.event import EventDispatcher
+from kivy.uix.image import Image
+from kivy.cache import Cache
 
 # Ficheros y audio
 from pathlib import Path
@@ -22,6 +25,7 @@ import sounddevice as sd
 from scipy.io.wavfile import write
 import time
 import threading
+import os
 
 #opencv
 import cv2
@@ -30,6 +34,7 @@ import numpy as np
 Config.set('graphics','width',500)
 Config.set('graphics','height',600)
 
+filenameCapture = ""
 
 
 class SoundScreenManager(ScreenManager):
@@ -106,16 +111,23 @@ class ImageScreen(Screen):
     pass
 
 class ImageFileScreen(Screen):
-
+    sm = ObjectProperty(None)
     txt_input = ObjectProperty(None)
     def fileOpen(self):
         if not Path('./resources/images/'+ self.txt_input.text).is_file():
             emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
+        else:
+            self.sm.get_screen('IReadS').image.source='./resources/images/'+ self.txt_input.text
+            self.sm.get_screen('IReadS').image.reload()
 
-class CaptureScreen(Screen):
+
+class CaptureScreen(Screen,EventDispatcher):
     filename = ObjectProperty(None)
+    sm = ObjectProperty(None)
+ 
+        
     def capturing(self):
         video = cv2.VideoCapture(0)
         while True:
@@ -124,26 +136,20 @@ class CaptureScreen(Screen):
             cv2.imshow('frame',gray)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
         # When everything done, release the capture
-        try:
-            cv2.imwrite('./resources/images/'+self.filename.text,gray)
-        except:
-            emerging = Popup(title='Error',content=Label(text='No se ha introducido datos validos .'),
-                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
-            emerging.open()
-        else:
-            emerging = Popup(title='Correcto',content=Label(text='Imagen capturada con éxito.'),
-                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
-            emerging.open()
+        cv2.imwrite('./resources/images/'+self.filename.text,gray)
         video.release()
         cv2.destroyAllWindows()
-
+        self.sm.get_screen('IConfirmS').filename = './resources/images/'+self.filename.text
+        self.sm.get_screen('IConfirmS').image.reload()
+    
 class ImageConfirmScreen(Screen):
-    pass
+    image = ObjectProperty(None)
+    filename = StringProperty('')
 
 class ImageReadScreen(Screen):
-    pass
+    image = ObjectProperty(None)
+
 class ScoreApp(App):
     def build(self):
         return MainScreen()
