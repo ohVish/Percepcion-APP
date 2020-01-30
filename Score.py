@@ -23,12 +23,19 @@ from scipy.io.wavfile import write
 import time
 import threading
 
+#opencv
+import cv2
+import numpy as np
+
 Config.set('graphics','width',500)
 Config.set('graphics','height',600)
 
 
 
-class MyScreenManager(ScreenManager):
+class SoundScreenManager(ScreenManager):
+    pass
+
+class ImageScreenManager(ScreenManager):
     pass
 
 class MainScreen(TabbedPanel):
@@ -85,7 +92,6 @@ class RecordScreen(Screen,EventDispatcher):
         write('./resources/sounds/'+filename, fs, myrecording)  # Save as WAV file 
         self.end = True
 
-    
 def loadStatus(instance,value):
         if value == True:
             instance.sm.current='soundS'
@@ -96,6 +102,48 @@ def loadStatus(instance,value):
             # Matláh
 
 
+class ImageScreen(Screen):
+    pass
+
+class ImageFileScreen(Screen):
+
+    txt_input = ObjectProperty(None)
+    def fileOpen(self):
+        if not Path('./resources/images/'+ self.txt_input.text).is_file():
+            emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+
+class CaptureScreen(Screen):
+    filename = ObjectProperty(None)
+    def capturing(self):
+        video = cv2.VideoCapture(0)
+        while True:
+            ret,frame = video.read()
+            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            cv2.imshow('frame',gray)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # When everything done, release the capture
+        try:
+            cv2.imwrite('./resources/images/'+self.filename.text,gray)
+        except:
+            emerging = Popup(title='Error',content=Label(text='No se ha introducido datos validos .'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+        else:
+            emerging = Popup(title='Correcto',content=Label(text='Imagen capturada con éxito.'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+        video.release()
+        cv2.destroyAllWindows()
+
+class ImageConfirmScreen(Screen):
+    pass
+
+class ImageReadScreen(Screen):
+    pass
 class ScoreApp(App):
     def build(self):
         return MainScreen()

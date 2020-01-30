@@ -26,12 +26,18 @@
     markup: True
     font_size:'18sp'
 
-<MyScreenManager>:
+<SoundScreenManager>:
     SoundScreen:
     FileScreen:
     RecordScreen:
     LoadingScreen:
 
+<ImageScreenManager>:
+    ImageScreen:
+    ImageFileScreen:
+    CaptureScreen:
+    ImageConfirmScreen:
+    ImageReadScreen:
 <MainScreen>:
     tab_pos: 'top_left'
     do_default_tab: False
@@ -57,10 +63,11 @@
                 size_hint: 1,0.1
     TabbedPanelItem:
         text: 'Escuchar\n melodía.' 
-        MyScreenManager:
+        SoundScreenManager:
             id: screenManager
     TabbedPanelItem:
         text: 'Leer\n partitura'
+        ImageScreenManager:
 
 <SoundScreen>:
     id: soundScreen
@@ -119,10 +126,7 @@
                 id: btn_file
                 text: 'Confirmar'
                 on_press: 
-                    file_screen.fileOpen()
-                    root.manager.transition.direction = 'left'
-                    root.manager.current = 'fileS'
-            
+                    file_screen.fileOpen()            
 
 <RecordScreen>:
     name: 'recordS'
@@ -193,3 +197,164 @@
         MediumLabel:
             font_size: '20sp'
             text: 'Grabando...'
+
+<ImageScreen>:
+    name: 'imageS'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Seleccione si desea:\n1. [b]Capturar[/b] una foto de una partitura.\n2. [b]Utilizar[/b] un fichero.'
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Capturar'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'captureS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Fichero'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'IFileS'
+
+<ImageFileScreen>:
+    name: 'IFileS'
+    txt_input: filename_input
+    id: imfile_screen
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Introduce el nombre del fichero:'
+        TextInput:
+            id: filename_input
+            multiline: False
+            text: 'ejemplo.jpg'
+            size_hint: 0.5,0.25
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'imageS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Confirmar'
+                on_press:
+                    imfile_screen.fileOpen()
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'IReadS'
+
+<CaptureScreen>:
+    name: 'captureS'
+    id: capture_screen
+    filename: filename_input
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: 'Introduce el nombre del fichero:'
+        TextInput:
+            id: filename_input
+            multiline: False
+            text: 'ejemplo.jpg'
+            size_hint: 0.5,0.25
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'imageS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Capturar'
+                on_press:
+                    capture_screen.capturing()
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'IConfirmS'
+
+<ImageConfirmScreen>:
+    name: 'IConfirmS'
+    id: confirm_screen
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: '¿Es correcta esta imagen?'
+        Image:
+            source:'./resources/images/'+root.manager.get_screen('captureS').filename.text
+            size: (100,100)
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'captureS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Confirmar'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'imageS'
+
+<ImageReadScreen>:
+    name: 'IReadS'
+    id: confirm_screen
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            text: '¿Es correcta esta imagen?'
+        Image:
+            source:'./resources/images/'+root.manager.get_screen('IFileS').txt_input.text
+            size: (100,100)
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+        Label:
+            size_hint: 0.1,0.5
+        GridLayout:
+            size_hint: 1,0.25
+            cols: 3
+            Button:
+                id: btn_record
+                text: 'Volver'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'IFileS'
+            Label:
+            Button:
+                id: btn_file
+                text: 'Confirmar'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'imageS'
