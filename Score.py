@@ -31,10 +31,13 @@ import os
 import cv2
 import numpy as np
 
+import sys
+
 Config.set('graphics','width',500)
 Config.set('graphics','height',600)
 
 filenameCapture = ""
+
 
 
 class SoundScreenManager(ScreenManager):
@@ -60,7 +63,7 @@ class FileScreen(Screen):
     txt_input = ObjectProperty(None)
 
     def fileOpen(self):
-        if not Path('./resources/sounds/'+ self.txt_input.text).is_file():
+        if not Path(sys.executable+'/resources/sounds/'+ self.txt_input.text).is_file():
             emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
@@ -94,7 +97,7 @@ class RecordScreen(Screen,EventDispatcher):
     def worker(self,seconds,fs,filename):
         myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=1)
         sd.wait()
-        write('./resources/sounds/'+filename, fs, myrecording)  # Save as WAV file 
+        write(sys.executable+'../resources/sounds/'+filename, fs, myrecording)  # Save as WAV file 
         self.end = True
 
 def loadStatus(instance,value):
@@ -114,12 +117,12 @@ class ImageFileScreen(Screen):
     sm = ObjectProperty(None)
     txt_input = ObjectProperty(None)
     def fileOpen(self):
-        if not Path('./resources/images/'+ self.txt_input.text).is_file():
+        if not Path(sys.executable+'../resources/images/'+ self.txt_input.text).is_file():
             emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
         else:
-            self.sm.get_screen('IReadS').image.source='./resources/images/'+ self.txt_input.text
+            self.sm.get_screen('IReadS').image.source=sys.executable+'../resources/images/'+ self.txt_input.text
             self.sm.get_screen('IReadS').image.reload()
 
 
@@ -137,10 +140,10 @@ class CaptureScreen(Screen,EventDispatcher):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         # When everything done, release the capture
-        cv2.imwrite('./resources/images/'+self.filename.text,gray)
+        cv2.imwrite(sys.executable+'../resources/images/'+self.filename.text,gray)
         video.release()
         cv2.destroyAllWindows()
-        self.sm.get_screen('IConfirmS').filename = './resources/images/'+self.filename.text
+        self.sm.get_screen('IConfirmS').filename = sys.executable+'../resources/images/'+self.filename.text
         self.sm.get_screen('IConfirmS').image.reload()
     
 class ImageConfirmScreen(Screen):
