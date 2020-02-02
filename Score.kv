@@ -25,7 +25,10 @@
 <MediumLabel@Label>:
     markup: True
     font_size:'18sp'
-
+<SmallLabel@Label>:
+    markup: True
+    font_size:'16sp'
+    
 <SoundScreenManager>:
     SoundScreen:
     FileScreen:
@@ -38,6 +41,8 @@
     CaptureScreen:
     ImageConfirmScreen:
     ImageReadScreen:
+    ProcessingScreen1:
+    ProcessingScreen2:
 
 <MainScreen>:
     tab_pos: 'top_left'
@@ -199,6 +204,26 @@
             font_size: '20sp'
             text: 'Grabando...'
 
+<ProcessingScreen1>:
+    name: 'procesS1'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            font_size: '20sp'
+            text: 'Procesando...'
+
+<ProcessingScreen2>:
+    name: 'procesS2'
+    BoxLayout:
+        orientation: 'vertical'
+        Title:
+        Logo:
+        MediumLabel:
+            font_size: '20sp'
+            text: 'Procesando...'
+
 <ImageScreen>:
     name: 'imageS'
     BoxLayout:
@@ -229,18 +254,53 @@
     txt_input: filename_input
     id: imfile_screen
     sm: root.manager
+    umb: umb_input
+    compas: compas_input
+    picos: picos_input
     BoxLayout:
         orientation: 'vertical'
         Title:
         Logo:
         MediumLabel:
-            text: 'Introduce el nombre del fichero:'
+            text: '[b]Nombre[/b] del fichero:'
         TextInput:
             id: filename_input
             multiline: False
-            text: 'ejemplo.jpg'
+            text: 'ejemplo.jpeg'
             size_hint: 0.5,0.25
             pos_hint: {'center_x':0.5,'center_y':0.5}
+        GridLayout:
+            cols: 3
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Compás[/b] de la partitura:'
+                TextInput:
+                    id: compas_input
+                    multiline: False
+                    text: '2/4'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Umbral[/b]:'
+                TextInput:
+                    id: umb_input
+                    multiline: False
+                    text: '0.2'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Máxima[/b] distancia\n entre picos:'
+                TextInput:
+                    id: picos_input
+                    multiline: False
+                    text: '15'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
             size_hint: 0.1,0.5
         GridLayout:
@@ -258,26 +318,59 @@
                 text: 'Confirmar'
                 on_press:
                     imfile_screen.fileOpen()
-                    root.manager.transition.direction = 'left'
-                    root.manager.current = 'IReadS'
 
 <CaptureScreen>:
     name: 'captureS'
     id: capture_screen
     filename: filename_input
     sm: root.manager
+    umb: umb_input
+    compas: compas_input
+    picos: picos_input
     BoxLayout:
         orientation: 'vertical'
         Title:
         Logo:
         MediumLabel:
-            text: 'Introduce el nombre del fichero:'
+            text: '[b]Nombre[/b] del fichero:'
         TextInput:
             id: filename_input
             multiline: False
-            text: 'ejemplo.jpg'
+            text: 'ejemplo.jpeg'
             size_hint: 0.5,0.25
             pos_hint: {'center_x':0.5,'center_y':0.5}
+        GridLayout:
+            cols: 3
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Compás[/b] de la partitura:'
+                TextInput:
+                    id: compas_input
+                    multiline: False
+                    text: '2/4'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Umbral[/b]:'
+                TextInput:
+                    id: umb_input
+                    multiline: False
+                    text: '0.2'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
+            BoxLayout:
+                orientation:'vertical'
+                SmallLabel:
+                    text: '[b]Máxima[/b] distancia\n entre picos:'
+                TextInput:
+                    id: picos_input
+                    multiline: False
+                    text: '15'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
         MediumLabel:
             text: 'Captura la imagen con la tecla [b]Q[/b].'
             size_hint: 0.1,0.5
@@ -305,6 +398,7 @@
     id: confirm_screen
     image: im_confirm
     filename: './resources/images/'
+    sm: root.manager
     BoxLayout:
         orientation: 'vertical'
         Title:
@@ -314,7 +408,7 @@
         Image:
             id: im_confirm
             source: confirm_screen.filename
-            size: (100,100)
+            size: (300,300)
             pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
             size_hint: 0.1,0.5
@@ -332,13 +426,15 @@
                 id: btn_file
                 text: 'Confirmar'
                 on_press:
+                    confirm_screen.run()
                     root.manager.transition.direction = 'left'
-                    root.manager.current = 'imageS'
+                    root.manager.current = 'procesS2'
 
 <ImageReadScreen>:
     name: 'IReadS'
     id: confirm_screen
     image: im
+    sm: root.manager
     BoxLayout:
         id: boxlayout
         orientation: 'vertical'
@@ -349,7 +445,7 @@
         Image:
             id: im
             source:'./resources/images/'
-            size: (100,100)
+            size: (300,300)
             pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
             size_hint: 0.1,0.5
@@ -367,5 +463,6 @@
                 id: btn_file
                 text: 'Confirmar'
                 on_press:
+                    confirm_screen.run()
                     root.manager.transition.direction = 'left'
-                    root.manager.current = 'imageS'
+                    root.manager.current = 'procesS1'

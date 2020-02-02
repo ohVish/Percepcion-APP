@@ -31,13 +31,33 @@ import os
 import cv2
 import numpy as np
 
+# Obtener la ruta del binario
 import sys
+
+# Matlab
+import matlab.engine
 
 Config.set('graphics','width',500)
 Config.set('graphics','height',600)
 
 filenameCapture = ""
 
+def escribirFichero(filename,a,compas):
+    filename = str(filename)
+    lista = filename.split('.')
+    filename = '.'+lista[1]+'.ly'
+    filename = filename.replace('images','generated')
+    fichero = open(filename,'w',encoding='utf-8')
+
+    string = '\\language "español"\n\\header{\ntitle = "Prueba"\n}\n{\n\\time '+compas+'\n'+a+'\n}\n\\version "2.18.2"'
+
+    fichero.write(string)
+    fichero.close()
+    filename = filename.split('/')
+    filename = filename[len(filename)-1]
+    os.chdir('./resources/generated')
+    os.system("docker run --rm -v $(pwd):/app -w /app gpit2286/lilypond lilypond "+filename)
+    os.chdir('../..')
 
 
 class SoundScreenManager(ScreenManager):
@@ -63,7 +83,7 @@ class FileScreen(Screen):
     txt_input = ObjectProperty(None)
 
     def fileOpen(self):
-        if not Path(sys.executable+'/resources/sounds/'+ self.txt_input.text).is_file():
+        if not Path('./resources/sounds/'+ self.txt_input.text).is_file():
             emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
@@ -97,7 +117,7 @@ class RecordScreen(Screen,EventDispatcher):
     def worker(self,seconds,fs,filename):
         myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=1)
         sd.wait()
-        write(sys.executable+'../resources/sounds/'+filename, fs, myrecording)  # Save as WAV file 
+        write('./resources/sounds/'+filename, fs, myrecording)  # Save as WAV file 
         self.end = True
 
 def loadStatus(instance,value):
@@ -116,46 +136,155 @@ class ImageScreen(Screen):
 class ImageFileScreen(Screen):
     sm = ObjectProperty(None)
     txt_input = ObjectProperty(None)
+    umb = ObjectProperty(None)
+    compas = ObjectProperty(None)
+    picos = ObjectProperty(None)
+
     def fileOpen(self):
-        if not Path(sys.executable+'../resources/images/'+ self.txt_input.text).is_file():
+        if not Path('./resources/images/'+ self.txt_input.text).is_file():
             emerging = Popup(title='Error',content=Label(text='No se encuentra un fichero con ese nombre'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
         else:
-            self.sm.get_screen('IReadS').image.source=sys.executable+'../resources/images/'+ self.txt_input.text
-            self.sm.get_screen('IReadS').image.reload()
+            try:
+                umbral = float(self.umb.text)
+                picos = int(self.picos.text)
+            except:
+                emerging = Popup(title='Error',content=Label(text='No se ha introducido datos validos .'),
+                                pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+                emerging.open()
+            else:
+                self.sm.get_screen('IReadS').umbral = umbral
+                self.sm.get_screen('IReadS').compas = self.compas.text
+                self.sm.get_screen('IReadS').picos = picos
+                self.sm.get_screen('IReadS').filename = './resources/images/'+self.txt_input.text
+                self.sm.get_screen('IReadS').image.source='./resources/images/'+ self.txt_input.text
+                self.sm.get_screen('IReadS').image.reload()
+                self.sm.transition.direction = 'left'
+                self.sm.current = 'IReadS'
 
 
 class CaptureScreen(Screen,EventDispatcher):
     filename = ObjectProperty(None)
     sm = ObjectProperty(None)
- 
-        
+    umb = ObjectProperty(None)
+    compas = ObjectProperty(None)
+    picos = ObjectProperty(None)
+
     def capturing(self):
-        video = cv2.VideoCapture(0)
-        while True:
-            ret,frame = video.read()
-            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-            cv2.imshow('frame',gray)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        # When everything done, release the capture
-        cv2.imwrite(sys.executable+'../resources/images/'+self.filename.text,gray)
-        video.release()
-        cv2.destroyAllWindows()
-        self.sm.get_screen('IConfirmS').filename = sys.executable+'../resources/images/'+self.filename.text
-        self.sm.get_screen('IConfirmS').image.reload()
-    
+        try:
+            umbral = float(self.umb.text)
+            picos = int(self.picos.text)
+        except:
+            emerging = Popup(title='Error',content=Label(text='No se ha introducido datos validos .'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+        else:
+            video = cv2.VideoCapture(0)
+            while True:
+                ret,frame = video.read()
+                gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+                cv2.imshow('frame',gray)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            # When everything done, release the capture
+            cv2.imwrite('./resources/images/'+self.filename.text,gray)
+            video.release()
+            cv2.destroyAllWindows()
+            self.sm.get_screen('IConfirmS').filename = './resources/images/'+self.filename.text
+            self.sm.get_screen('IConfirmS').umbral = umbral
+            self.sm.get_screen('IConfirmS').picos = picos
+            self.sm.get_screen('IConfirmS').compas = self.compas.text
+            self.sm.get_screen('IConfirmS').image.reload()
+        
 class ImageConfirmScreen(Screen):
     image = ObjectProperty(None)
     filename = StringProperty('')
+    sm = ObjectProperty(None)
+    end = BooleanProperty(False)
+    umbral = 0.2
+    compas = '2/4'
+    good = True
+    picos = 15
+    
+    def run(self):
+            self.bind(end=endRecognise)
+            t = threading.Thread(target=self.reconocerPartitura)
+            t.start()
+    
+    def reconocerPartitura(self):
+        eng = matlab.engine.start_matlab()
+        eng.workspace['filename']=str(self.filename)
+        eng.workspace['umbral']=self.umbral
+        eng.workspace['valorLineas']=self.picos
+        self.good = True
+        try:
+            eng.getPentagramas(nargout=0)
+        except:
+            print('Excepcion')
+            self.good = False
+        else:
+            string=eng.workspace['string']
+            escribirFichero(self.filename,string,self.compas)
+        eng.quit()
+        self.end=True
 
-class ImageReadScreen(Screen):
+
+class ImageReadScreen(Screen,EventDispatcher):
+    end = BooleanProperty(False)
     image = ObjectProperty(None)
+    filename = StringProperty('')
+    sm = ObjectProperty(None)
+    good = True
+    umbral = 0.2
+    compas = '2/4'
+    picos = 15
+
+    def run(self):
+            self.bind(end=endRecognise)
+            t = threading.Thread(target=self.reconocerPartitura)
+            t.start()
+
+    def reconocerPartitura(self):
+        eng = matlab.engine.start_matlab()
+        eng.workspace['filename']=str(self.filename)
+        eng.workspace['umbral']=self.umbral
+        eng.workspace['valorLineas']=self.picos
+        self.good = True
+        try:
+            eng.getPentagramas(nargout=0)
+        except:
+            print('Excepcion')
+            self.good = False
+        else:
+            string=eng.workspace['str']
+            escribirFichero(self.filename,string,self.compas)
+        eng.quit()
+        self.end=True
+
+class ProcessingScreen1(Screen):
+    pass
+
+class ProcessingScreen2(Screen):
+    pass
 
 class ScoreApp(App):
     def build(self):
         return MainScreen()
+
+def endRecognise(instance,value):
+    if value == True:
+        instance.end = False
+        instance.sm.current='imageS'
+        if instance.good == True:
+            emerging = Popup(title='Correcto',content=Label(text='Partitura digitalizada con éxito.'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+        else:
+            emerging = Popup(title='Error',content=Label(text='Partitura no digitalizada.'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+
 
 if __name__=='__main__':
     ScoreApp().run()
