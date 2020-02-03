@@ -104,18 +104,37 @@
     txt_input: filename_input
     name: 'fileS'
     id: file_screen
+    compas: compas_input
+    sm: root.manager
     BoxLayout:
         orientation: 'vertical'
         Title:
         Logo:
         MediumLabel:
-            text: 'Introduce el [b]nombre[/b] del fichero.\nEste debe encontrarse en el directorio [i][b]"./resources/sounds/[/b][/i]".'
+            text: 'Introduce el [b]nombre[/b] del fichero.\n'
         TextInput:
             id: filename_input
             multiline: False
-            text: 'ejemplo.wav'
+            text: 'test_1.wav'
             size_hint: 0.5,0.25
             pos_hint: {'center_x':0.5,'center_y':0.5}
+        GridLayout:
+            cols: 2
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                MediumLabel:
+                    text: 'El fichero debe encontrarse\n en el directorio:\n [i][b]"./resources/sounds/[/b][/i]"'
+            BoxLayout:
+                orientation: 'vertical'
+                MediumLabel:
+                    text: 'Compás de la partitura:'
+                TextInput:
+                    id: compas_input
+                    multiline: False
+                    text: '2/4'
+                    size_hint: 0.5,0.25
+                    pos_hint: {'center_x':0.5,'center_y':0.5}
         Label:
             size_hint: 0.1,0.5
         GridLayout:
@@ -132,7 +151,7 @@
                 id: btn_file
                 text: 'Confirmar'
                 on_press: 
-                    file_screen.fileOpen()            
+                    file_screen.fileOpen() 
 
 <RecordScreen>:
     name: 'recordS'
@@ -266,7 +285,7 @@
         TextInput:
             id: filename_input
             multiline: False
-            text: 'ejemplo.jpeg'
+            text: 'partitura5.jpeg'
             size_hint: 0.5,0.25
             pos_hint: {'center_x':0.5,'center_y':0.5}
         GridLayout:

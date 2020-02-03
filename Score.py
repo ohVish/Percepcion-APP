@@ -49,7 +49,24 @@ def escribirFichero(filename,a,compas):
     filename = filename.replace('images','generated')
     fichero = open(filename,'w',encoding='utf-8')
 
-    string = '\\language "español"\n\\header{\ntitle = "Prueba"\n}\n{\n\\time '+compas+'\n'+a+'\n}\n\\version "2.18.2"'
+    string = '\\language "español"\n\\header{\ntitle = "'+filename+'"\n}\n{\n\\time '+compas+'\n'+a+'\n}\n\\version "2.18.2"'
+
+    fichero.write(string)
+    fichero.close()
+    filename = filename.split('/')
+    filename = filename[len(filename)-1]
+    os.chdir('./resources/generated')
+    os.system("docker run --rm -v $(pwd):/app -w /app gpit2286/lilypond lilypond "+filename)
+    os.chdir('../..')
+
+def escribirFicheroS(filename,a,compas):
+    filename = str(filename)
+    lista = filename.split('.')
+    filename = '.'+lista[1]+'.ly'
+    filename = filename.replace('sounds','generated')
+    fichero = open(filename,'w',encoding='utf-8')
+
+    string = '\\language "español"\n\\header{\ntitle = "'+filename+'"\n}\n{\n\\time '+compas+'\n'+a+'\n}\n\\version "2.18.2"'
 
     fichero.write(string)
     fichero.close()
@@ -78,9 +95,13 @@ class SoundScreen(Screen):
 class LoadingScreen(Screen):
     pass
 
-class FileScreen(Screen):
+class FileScreen(Screen,EventDispatcher):
 
     txt_input = ObjectProperty(None)
+    compas = ObjectProperty(None)
+    end = BooleanProperty(None)
+    sm = ObjectProperty(None)
+    good = True 
 
     def fileOpen(self):
         if not Path('./resources/sounds/'+ self.txt_input.text).is_file():
@@ -88,8 +109,39 @@ class FileScreen(Screen):
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
         else:
-            # Aquí se llamaría al matláh
-            print('matlah')
+            self.bind(end=endMelodia)
+            t = threading.Thread(target=self.reconocerMelodia)
+            t.start()
+            self.sm.transition.direction = 'left'
+            self.sm.current = 'loadS'            
+    def reconocerMelodia(self):
+        eng = matlab.engine.start_matlab()
+        eng.workspace['filename']='./resources/sounds/'+ self.txt_input.text
+        self.good = True
+        try:
+            eng.recMelodia(nargout=0)
+        except:
+            print('Excepcion')
+            self.good = False
+        else:
+            string=eng.workspace['str']
+            escribirFicheroS('./resources/sounds/'+ self.txt_input.text,string,self.compas.text)
+        eng.quit()
+        self.end=True
+
+def endMelodia(instance,value):
+    if value == True:
+        instance.end = False
+        instance.sm.current='soundS'
+        if instance.good == True:
+            emerging = Popup(title='Correcto',content=Label(text='Partitura digitalizada con éxito.'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+        else:
+            emerging = Popup(title='Error',content=Label(text='Partitura no digitalizada.'),
+                            pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
+            emerging.open()
+
     
 
 class RecordScreen(Screen,EventDispatcher):
@@ -127,7 +179,6 @@ def loadStatus(instance,value):
             emerging = Popup(title='Correcto',content=Label(text='Audio grabado con éxito.'),
                             pos_hint={'center_x':0.5,'center_y':0.5},size_hint=(0.75,0.5))
             emerging.open()
-            # Matláh
 
 
 class ImageScreen(Screen):
