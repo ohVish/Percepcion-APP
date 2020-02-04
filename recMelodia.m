@@ -40,16 +40,16 @@ for i = 2:length(NOTAS)
                str = strcat(str,"'"); 
             end
                        
-            if duracion > 16
+            if duracion > 15
                 str = strcat(str,"1 ");
                 duracion = duracion - 16;
-            elseif duracion > 8
+            elseif duracion > 7
                 str = strcat(str,"2 ");
                 duracion = duracion - 8;
-            elseif duracion > 4
+            elseif duracion > 3
                 str = strcat(str,"4 ");
                 duracion = duracion - 4;
-            elseif duracion > 2
+            elseif duracion > 1
                 str = strcat(str,"8 ");
                 duracion = duracion - 2;
             else
